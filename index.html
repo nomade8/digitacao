@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DigitaFácil - Treinamento de Digitação para Alunos</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-wrapper">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-icon">
+          <i data-lucide="keyboard"></i>
+        </div>
+        <div>
+          <h1 class="logo-title">Digita<span>Fácil</span></h1>
+          <p class="logo-subtitle">Plataforma Didática de Prática de Digitação no Computador</p>
+        </div>
+      </div>
+
+      <div class="header-controls">
+        <div class="preset-selector">
+          <label for="textSelect"><i data-lucide="book-open"></i> Texto:</label>
+          <select id="textSelect">
+            <option value="0">Texto 1: A Importância da Tecnologia (Fácil)</option>
+            <option value="1">Texto 2: Dicas de Postura e Digitação (Médio)</option>
+            <option value="2">Texto 3: A Internet e o Conhecimento (Médio)</option>
+            <option value="3">Texto 4: Desafio de Pontuação e Acentos (Avançado)</option>
+          </select>
+        </div>
+        
+        <button id="soundToggle" class="btn-icon" title="Alternar som de clique">
+          <i data-lucide="volume-2" id="soundIcon"></i>
+        </button>
+        
+        <button id="restartBtn" class="btn-secondary" title="Recomeçar exercício">
+          <i data-lucide="rotate-ccw"></i>
+          <span>Reiniciar</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Top Stats Bar -->
+    <section class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-icon timer-icon"><i data-lucide="timer"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Tempo</span>
+          <span class="stat-value" id="timerDisplay">00:00</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon speed-icon"><i data-lucide="zap"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Velocidade</span>
+          <span class="stat-value"><span id="wpmDisplay">0</span> <small>PPM</small></span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon accuracy-icon"><i data-lucide="target"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Precisão</span>
+          <span class="stat-value"><span id="accuracyDisplay">100</span><small>%</small></span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon errors-icon"><i data-lucide="alert-circle"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Erros</span>
+          <span class="stat-value" id="errorsDisplay">0</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon progress-icon"><i data-lucide="check-circle-2"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Progresso</span>
+          <span class="stat-value"><span id="progressDisplay">0</span><small>%</small></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Side-by-Side Workspace (Desktop Full-Width) -->
+    <main class="practice-container">
+      
+      <!-- Left Panel: Reference Text -->
+      <section class="panel panel-reference">
+        <div class="panel-header">
+          <div class="panel-title">
+            <i data-lucide="file-text"></i>
+            <h2>Texto Original (Modelo)</h2>
+          </div>
+          <span class="badge badge-guide">Texto para copiar</span>
+        </div>
+        
+        <div class="reference-content-wrapper">
+          <div class="reference-text-display" id="referenceDisplay">
+            <!-- Caracteres gerados dinamicamente para feedback visual -->
+          </div>
+        </div>
+
+        <div class="panel-footer">
+          <div class="char-count-info">
+            Total: <strong id="totalChars">0</strong> caracteres | <strong id="totalWords">0</strong> palavras
+          </div>
+          <div class="keyboard-hint">
+            <i data-lucide="info"></i> Posicione as mãos corretamente no teclado.
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Panel: Student Typing Area -->
+      <section class="panel panel-input">
+        <div class="panel-header">
+          <div class="panel-title">
+            <i data-lucide="pen-tool"></i>
+            <h2>Sua Digitação</h2>
+          </div>
+          <div class="status-indicator" id="statusBadge">
+            <span class="pulse-dot"></span>
+            <span id="statusText">Aguardando digitação...</span>
+          </div>
+        </div>
+
+        <div class="input-content-wrapper">
+          <textarea 
+            id="typingArea" 
+            placeholder="Clique aqui e comece a digitar o texto modelo ao lado..."
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+          ></textarea>
+        </div>
+
+        <div class="panel-action-footer">
+          <div class="action-instructions">
+            <span>Clique em <strong>Enviar Exercício</strong> ao terminar:</span>
+          </div>
+          
+          <!-- Submit Button with Color Morphing and Animation -->
+          <button id="submitBtn" class="btn-submit" type="button">
+            <span class="btn-content">
+              <i data-lucide="send" id="btnIcon"></i>
+              <span id="btnLabel">Enviar Exercício</span>
+            </span>
+          </button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Submission Modal Feedback -->
+    <div class="modal-overlay" id="submissionModal">
+      <div class="modal-card">
+        <div class="modal-header-icon success">
+          <i data-lucide="check-check"></i>
+        </div>
+        <h3 class="modal-title">Exercício Enviado com Sucesso!</h3>
+        <p class="modal-desc">Parabéns! Sua digitação foi analisada e registrada com sucesso.</p>
+        
+        <div class="modal-metrics">
+          <div class="metric-item">
+            <span class="metric-name">Velocidade Média</span>
+            <span class="metric-num" id="modalWpm">0 PPM</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-name">Precisão</span>
+            <span class="metric-num" id="modalAccuracy">0%</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-name">Tempo Decorrido</span>
+            <span class="metric-num" id="modalTime">00:00</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-name">Erros Registrados</span>
+            <span class="metric-num" id="modalErrors">0</span>
+          </div>
+        </div>
+
+        <div class="modal-feedback-message" id="modalFeedbackText">
+          Excelente desempenho! Continue praticando para alcançar ainda mais velocidade e precisão.
+        </div>
+
+        <div class="modal-actions">
+          <button id="modalCloseBtn" class="btn-secondary">Voltar ao Texto</button>
+          <button id="modalNextBtn" class="btn-primary">Próximo Texto <i data-lucide="arrow-right"></i></button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
