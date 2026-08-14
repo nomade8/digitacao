@@ -27,6 +27,11 @@
       </div>
 
       <div class="header-controls">
+        <div class="student-input-container">
+          <label for="studentNameInput"><i data-lucide="user"></i> Aluno:</label>
+          <input type="text" id="studentNameInput" placeholder="Digite seu nome..." maxlength="35" autocomplete="name">
+        </div>
+
         <div class="preset-selector">
           <label for="textSelect"><i data-lucide="book-open"></i> Texto:</label>
           <select id="textSelect">
@@ -125,7 +130,7 @@
         <div class="panel-header">
           <div class="panel-title">
             <i data-lucide="pen-tool"></i>
-            <h2>Sua Digitação</h2>
+            <h2>Sua Digitação <span class="student-tag" id="studentDisplayTag">Aluno</span></h2>
           </div>
           <div class="status-indicator" id="statusBadge">
             <span class="pulse-dot"></span>
@@ -167,8 +172,11 @@
         <div class="modal-header-icon success">
           <i data-lucide="check-check"></i>
         </div>
+        <div class="modal-student-badge">
+          <i data-lucide="user-check"></i> <span id="modalStudentName">Aluno</span>
+        </div>
         <h3 class="modal-title">Exercício Enviado com Sucesso!</h3>
-        <p class="modal-desc">Parabéns! Sua digitação foi analisada e registrada com sucesso.</p>
+        <p class="modal-desc" id="modalDesc">Parabéns! Sua digitação foi analisada e registrada com sucesso.</p>
         
         <div class="modal-metrics">
           <div class="metric-item">

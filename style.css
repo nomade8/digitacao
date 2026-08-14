@@ -130,6 +130,47 @@ body {
   gap: 14px;
 }
 
+.student-input-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--bg-card-border);
+}
+
+.student-input-container label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.student-input-container input {
+  background: #111827;
+  color: var(--text-main);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-sm);
+  padding: 6px 12px;
+  font-size: 0.88rem;
+  font-family: var(--font-sans);
+  outline: none;
+  width: 170px;
+  transition: var(--transition);
+}
+
+.student-input-container input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-glow);
+}
+
+.student-input-container input::placeholder {
+  color: #64748b;
+}
+
 .preset-selector {
   display: flex;
   align-items: center;
@@ -347,6 +388,23 @@ body {
 .panel-title h2 {
   font-size: 1.15rem;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.student-tag {
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: rgba(99, 102, 241, 0.18);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  padding: 3px 10px;
+  border-radius: 12px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .panel-title svg {
@@ -663,6 +721,26 @@ body {
 .modal-header-icon svg {
   width: 36px;
   height: 36px;
+}
+
+.modal-student-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  color: #a5b4fc;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.modal-student-badge svg {
+  width: 18px;
+  height: 18px;
+  color: #818cf8;
 }
 
 .modal-title {

@@ -22,10 +22,13 @@ const state = {
   isFinished: false,
   isSubmitted: false,
   soundEnabled: true,
-  audioCtx: null
+  audioCtx: null,
+  studentName: ""
 };
 
 // Elementos do DOM
+const studentNameInput = document.getElementById("studentNameInput");
+const studentDisplayTag = document.getElementById("studentDisplayTag");
 const textSelect = document.getElementById("textSelect");
 const soundToggle = document.getElementById("soundToggle");
 const soundIcon = document.getElementById("soundIcon");
@@ -51,6 +54,8 @@ const btnLabel = document.getElementById("btnLabel");
 
 // Modal Elements
 const submissionModal = document.getElementById("submissionModal");
+const modalStudentName = document.getElementById("modalStudentName");
+const modalDesc = document.getElementById("modalDesc");
 const modalWpm = document.getElementById("modalWpm");
 const modalAccuracy = document.getElementById("modalAccuracy");
 const modalTime = document.getElementById("modalTime");
@@ -244,13 +249,77 @@ function calculateStats() {
 }
 
 // ==========================================================================
-// Eventos de Digitação
+// Atualização Visual Sincronizada com o Cursor/Ponteiro
+// ==========================================================================
+function updateDisplayHighlight(isTypingEvent = false, inputType = "") {
+  const typed = typingArea.value;
+  const target = state.targetText;
+  const cursorPos = typeof typingArea.selectionStart === "number" ? typingArea.selectionStart : typed.length;
+
+  const charSpans = referenceDisplay.querySelectorAll(".char");
+  if (!charSpans || charSpans.length === 0) return;
+
+  let lastInsertedCorrect = true;
+
+  charSpans.forEach((span, idx) => {
+    span.className = "char";
+
+    // Avaliação do status de cada caractere digitado
+    if (idx < typed.length) {
+      if (typed[idx] === target[idx]) {
+        span.classList.add("correct");
+      } else {
+        span.classList.add("wrong");
+      }
+    }
+
+    // O indicador de foco (.current) segue fielmente a posição do cursor do aluno
+    if (idx === cursorPos) {
+      span.classList.add("current");
+    }
+  });
+
+  // Se o cursor estiver no fim ou além do texto
+  if (cursorPos >= target.length && charSpans.length > 0) {
+    charSpans[charSpans.length - 1].classList.add("current");
+  }
+
+  // Efeito sonoro didático baseado no caractere inserido
+  if (isTypingEvent && inputType !== "deleteContentBackward" && inputType !== "deleteContentForward") {
+    const insertedIdx = cursorPos > 0 ? cursorPos - 1 : 0;
+    if (insertedIdx < target.length && insertedIdx < typed.length) {
+      lastInsertedCorrect = (typed[insertedIdx] === target[insertedIdx]);
+    }
+    playKeySound(!lastInsertedCorrect);
+  }
+
+  calculateStats();
+
+  // Controle de conclusão e retomada (caso o aluno apague caracteres para corrigir)
+  if (typed.length >= target.length) {
+    if (!state.isFinished) {
+      state.isFinished = true;
+      stopTimer();
+      statusText.textContent = "Texto concluído! Clique em Enviar.";
+    }
+  } else {
+    if (state.isFinished) {
+      state.isFinished = false;
+      if (state.isTyping && !state.timerInterval) {
+        startTimer();
+        statusText.textContent = "Digitando em andamento...";
+      }
+    }
+  }
+}
+
+// ==========================================================================
+// Eventos de Digitação e Navegação do Cursor
 // ==========================================================================
 typingArea.addEventListener("input", (e) => {
   const typed = typingArea.value;
-  const target = state.targetText;
 
-  // Iniciar na primeira tecla
+  // Iniciar cronômetro na primeira digitação
   if (!state.isTyping && typed.length > 0) {
     state.isTyping = true;
     startTimer();
@@ -258,40 +327,17 @@ typingArea.addEventListener("input", (e) => {
     statusText.textContent = "Digitando em andamento...";
   }
 
-  // Atualizar visualização caractere por caractere
-  const charSpans = referenceDisplay.querySelectorAll(".char");
-  let lastCharCorrect = true;
+  updateDisplayHighlight(true, e.inputType);
+});
 
-  charSpans.forEach((span, idx) => {
-    span.classList.remove("correct", "wrong", "current");
-
-    if (idx < typed.length) {
-      if (typed[idx] === target[idx]) {
-        span.classList.add("correct");
-      } else {
-        span.classList.add("wrong");
-        if (idx === typed.length - 1) lastCharCorrect = false;
-      }
-    } else if (idx === typed.length) {
-      span.classList.add("current");
-    }
+// Acompanhar movimentação do ponteiro (clique, setas do teclado, seleção, foco)
+["keyup", "keydown", "click", "select", "focus"].forEach((evt) => {
+  typingArea.addEventListener(evt, () => {
+    // Atualização com micro-delay para capturar a posição exata da seleção após o evento
+    requestAnimationFrame(() => {
+      updateDisplayHighlight(false);
+    });
   });
-
-  // Tocar som de clique
-  if (e.inputType !== "deleteContentBackward") {
-    playKeySound(!lastCharCorrect);
-  }
-
-  calculateStats();
-
-  // Se completou todos os caracteres
-  if (typed.length >= target.length && !state.isFinished) {
-    state.isFinished = true;
-    stopTimer();
-    statusText.textContent = "Texto concluído! Clique em Enviar.";
-    // Destaque suave no botão de envio
-    submitBtn.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }
 });
 
 // Prevenir colar texto para incentivar a digitação real do aluno
@@ -299,6 +345,32 @@ typingArea.addEventListener("paste", (e) => {
   e.preventDefault();
   alert("Por favor, digite o texto manualmente para praticar sua digitação!");
 });
+
+// ==========================================================================
+// Gerenciamento do Nome do Aluno
+// ==========================================================================
+function updateStudentName(name) {
+  const cleanName = (name || "").trim();
+  state.studentName = cleanName;
+  
+  if (cleanName) {
+    studentDisplayTag.textContent = cleanName;
+    studentDisplayTag.title = `Aluno: ${cleanName}`;
+    modalStudentName.textContent = cleanName;
+    localStorage.setItem("digitafacil_student_name", cleanName);
+  } else {
+    studentDisplayTag.textContent = "Aluno";
+    studentDisplayTag.title = "Aluno não identificado";
+    modalStudentName.textContent = "Aluno";
+    localStorage.removeItem("digitafacil_student_name");
+  }
+}
+
+if (studentNameInput) {
+  studentNameInput.addEventListener("input", (e) => {
+    updateStudentName(e.target.value);
+  });
+}
 
 // ==========================================================================
 // Ação do Botão de Enviar (Mudança de Cor e Feedback Didático)
@@ -334,13 +406,20 @@ function handleSubmit() {
   modalTime.textContent = `${mins}:${secs}`;
   modalErrors.textContent = `${stats.errorsCount}`;
 
+  // Personalização da mensagem do aluno
+  const displayName = state.studentName ? state.studentName : "Aluno";
+  modalStudentName.textContent = displayName;
+  modalDesc.textContent = state.studentName 
+    ? `Parabéns, ${state.studentName}! Sua digitação foi analisada e registrada com sucesso.`
+    : "Parabéns! Sua digitação foi analisada e registrada com sucesso.";
+
   // Mensagem pedagógica personalizada
   if (stats.accuracy >= 95 && stats.wpm >= 30) {
-    modalFeedbackText.textContent = "Excelente! Sua precisão e velocidade estão muito acima da média. Parabéns!";
+    modalFeedbackText.textContent = `Excelente, ${displayName}! Sua precisão e velocidade estão muito acima da média. Parabéns!`;
   } else if (stats.accuracy >= 85) {
-    modalFeedbackText.textContent = "Muito bom! Continue praticando para aumentar ainda mais sua agilidade sem perder a precisão.";
+    modalFeedbackText.textContent = `Muito bom, ${displayName}! Continue praticando para aumentar ainda mais sua agilidade sem perder a precisão.`;
   } else {
-    modalFeedbackText.textContent = "Bom esforço! Lembre-se: foque primeiro em acertar as teclas, a velocidade vem naturalmente com o treino.";
+    modalFeedbackText.textContent = `Bom esforço, ${displayName}! Lembre-se: foque primeiro em acertar as teclas, a velocidade vem naturalmente com o treino.`;
   }
 
   // Exibe o modal com delay suave
@@ -395,6 +474,13 @@ soundToggle.addEventListener("click", () => {
 
 // Inicialização
 document.addEventListener("DOMContentLoaded", () => {
+  // Carregar nome do aluno salvo anteriormente
+  const savedStudentName = localStorage.getItem("digitafacil_student_name") || "";
+  if (studentNameInput) {
+    studentNameInput.value = savedStudentName;
+  }
+  updateStudentName(savedStudentName);
+
   lucide.createIcons();
   soundToggle.classList.add("active");
   loadPracticeText(0);
